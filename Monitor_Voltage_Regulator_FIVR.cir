@@ -1,0 +1,346 @@
+******************************************************************************
+* The netlist describes our monitoring scheme to detect the occurrence of faults
+* and aging conditions affecting Fully Integrated Voltage Regulators (FIVRs).
+* The netlist also implements a case sstudy FIVR that is representative of FIVRs
+* currently adopted in high-performance microprocessors/SoCs.
+******************************************************************************
+
+****************************************************************************
+* Definition of parameters with CMOS transistor sizes
+****************************************************************************
+
+.PARAM Wp='2*Wn'
+.PARAM Wn=22n
+.PARAM Ln=22n
+.PARAM LP=22n
+.PARAM Lnc=44n
+.PARAM Lpc=44n
+
+
+****************************************************************************
+* Definition of subcircuits of logic gates and blocks that are needed
+* to implement our FIVR monitor
+****************************************************************************
+
+.SUBCKT NOTxCHAIN vdd vss in out
+MP1 out in vdd vdd CMOSP W=Wp L=Lpc
+MN1 out in vss vss CMOSN W=Wn L=Lnc
+.ENDs
+
+.SUBCKT NOTCHAIN1 vdd vss in out
+XNOT1 vdd vss in o1 NOTxCHAIN
+XNOT2 vdd vss o1 o2 NOTxCHAIN
+XNOT3 vdd vss o2 o3 NOTxCHAIN
+XNOT4 vdd vss o3 o4 NOTxCHAIN
+XNOT5 vdd vss o4 o5 NOTxCHAIN
+XNOT6 vdd vss o5 o6 NOTxCHAIN
+XNOT7 vdd vss o6 o7 NOTxCHAIN
+XNOT8 vdd vss o7 o8 NOTxCHAIN
+XNOT9 vdd vss o8 o9 NOTxCHAIN
+XNOT10 vdd vss o9 o10 NOTxCHAIN
+XNOT11 vdd vss o10 o11 NOTxCHAIN
+XNOT12 vdd vss o11 o12 NOTxCHAIN
+XNOT13 vdd vss o12 o13 NOTxCHAIN
+XNOT14 vdd vss o13 o14 NOTxCHAIN
+XNOT15 vdd vss o14 o15 NOTxCHAIN
+XNOT16 vdd vss o15 o16 NOTxCHAIN
+XNOT17 vdd vss o16 o17 NOTxCHAIN
+XNOT18 vdd vss o17 o18 NOTxCHAIN
+XNOT19 vdd vss o18 o19 NOTxCHAIN
+XNOT20 vdd vss o19 o20 NOTxCHAIN
+XNOT21 vdd vss o20 o21 NOTxCHAIN
+XNOT22 vdd vss o21 o22 NOTxCHAIN
+XNOT23 vdd vss o22 o23 NOTxCHAIN
+XNOT24 vdd vss o23 o24 NOTxCHAIN
+XNOT25 vdd vss o24 o25 NOTxCHAIN
+XNOT26 vdd vss o25 o26 NOTxCHAIN
+XNOT27 vdd vss o26 o27 NOTxCHAIN
+XNOT28 vdd vss o27 o28 NOTxCHAIN
+XNOT29 vdd vss o28 o29 NOTxCHAIN
+XNOT30 vdd vss o29 o30 NOTxCHAIN
+XNOT31 vdd vss o30 o31 NOTxCHAIN
+XNOT32 vdd vss o31 o32 NOTxCHAIN
+XNOT33 vdd vss o32 o33 NOTxCHAIN
+XNOT34 vdd vss o33 o34 NOTxCHAIN
+XNOT35 vdd vss o34 o35 NOTxCHAIN
+XNOT36 vdd vss o35 o36 NOTxCHAIN
+XNOT37 vdd vss o36 o37 NOTxCHAIN
+XNOT38 vdd vss o37 o38 NOTxCHAIN
+XNOT39 vdd vss o38 o39 NOTxCHAIN
+XNOT40 vdd vss o39 out NOTxCHAIN
+.ENDS
+
+.SUBCKT NOTCHAIN2 vdd vss in out
+XTG1 vdd vss in o1 TGxCHAIN
+XNOT2 vdd vss o1 o2 NOTxCHAIN
+XNOT3 vdd vss o2 o3 NOTxCHAIN
+XNOT4 vdd vss o3 o4 NOTxCHAIN
+XNOT5 vdd vss o4 o5 NOTxCHAIN
+XNOT6 vdd vss o5 o6 NOTxCHAIN
+XNOT7 vdd vss o6 o7 NOTxCHAIN
+XNOT8 vdd vss o7 o8 NOTxCHAIN
+XNOT9 vdd vss o8 o9 NOTxCHAIN
+XNOT10 vdd vss o9 o10 NOTxCHAIN
+XNOT11 vdd vss o10 o11 NOTxCHAIN
+XNOT12 vdd vss o11 o12 NOTxCHAIN
+XNOT13 vdd vss o12 o13 NOTxCHAIN
+XNOT14 vdd vss o13 o14 NOTxCHAIN
+XNOT15 vdd vss o14 o15 NOTxCHAIN
+XNOT16 vdd vss o15 o16 NOTxCHAIN
+XNOT17 vdd vss o16 o17 NOTxCHAIN
+XNOT18 vdd vss o17 o18 NOTxCHAIN
+XNOT19 vdd vss o18 o19 NOTxCHAIN
+XNOT20 vdd vss o19 o20 NOTxCHAIN
+XNOT21 vdd vss o20 o21 NOTxCHAIN
+XNOT22 vdd vss o21 o22 NOTxCHAIN
+XNOT23 vdd vss o22 o23 NOTxCHAIN
+XNOT24 vdd vss o23 o24 NOTxCHAIN
+XNOT25 vdd vss o24 o25 NOTxCHAIN
+XNOT26 vdd vss o25 o26 NOTxCHAIN
+XNOT27 vdd vss o26 o27 NOTxCHAIN
+XNOT28 vdd vss o27 o28 NOTxCHAIN
+XNOT29 vdd vss o28 o29 NOTxCHAIN
+XNOT30 vdd vss o29 o30 NOTxCHAIN
+XNOT31 vdd vss o30 o31 NOTxCHAIN
+XNOT32 vdd vss o31 o32 NOTxCHAIN
+XNOT33 vdd vss o32 o33 NOTxCHAIN
+XNOT34 vdd vss o33 o34 NOTxCHAIN
+XNOT35 vdd vss o34 o35 NOTxCHAIN
+XNOT36 vdd vss o35 o36 NOTxCHAIN
+XNOT37 vdd vss o36 o37 NOTxCHAIN
+XNOT38 vdd vss o37 o38 NOTxCHAIN
+XNOT39 vdd vss o38 o39 NOTxCHAIN
+XNOT40 vdd vss o39 out NOTxCHAIN
+.ENDS
+
+
+.SUBCKT NOTx1 vdd vss in out
+MP1 out in vdd vdd CMOSP W=Wp L=Lp
+MN1 out in vss vss CMOSN W=Wn L=Ln
+.ENDs
+
+.SUBCKT C2NOTx1 vdd vss Gp Gn in out
+MP1 int1 Gp vdd vdd CMOSP W='1*Wp' L=Lp
+MP2 out in int1 Vdd CMOSP W='1*Wp' L=Lp
+MN1 out in int2 vss CMOSN W='1*Wn' L=Ln
+MN2 int2 Gn vss vss CMOSN W='1*Wn' L=Ln
+.ENDs
+
+.SUBCKT TGxCHAIN vdd vss in out
+MP1 out vss in vdd CMOSP W=Wp L=Lp
+MN1 out vdd in vss CMOSN W=Wn L=Ln
+.ENDs
+
+.SUBCKT NAND2in vdd vss in1 in2 out
+MP1 out in1 vdd vdd CMOSP W=Wp L=Lp
+MP2 out in2 vdd vdd CMOSP W=Wp L=Lp
+MN1 out in1 int1 vss CMOSN W='2*Wn' L=Ln
+MN2 int1 in2 vss vss CMOSN W='2*Wn' L=Lp
+.ENDs
+
+.SUBCKT NOR2in vdd vss in1 in2 out
+MP1 int1 in1 vdd vdd CMOSP W='3*Wp' L=Lp
+MP2 out in2 int1 vdd CMOSP W='3*Wp' L=Lp
+MN1 out in1 vss vss CMOSN W='1*Wn' L=Lp
+MN2 out in2 vss vss CMOSN W='1*Wn' L=Lp
+.ENDS
+
+.SUBCKT NOR3in vdd vss in1 in2 in3 out
+MP1 int2 in1 vdd vdd CMOSP W='3*Wp' L=Lp
+MP2 int1 in2 int2 vdd CMOSP W='3*Wp' L=Lp
+MP3 out in3 int1 vdd CMOSP W='3*Wp' L=Lp
+MN1 out in1 vss vss CMOSN W='1*Wn' L=Ln
+MN2 out in2 vss vss CMOSN W='1*Wn' L=Lp
+MN3 out in3 vss vss CMOSN W='1*Wn' L=Lp
+.ENDS
+
+* Sub-circuit for the Enable Genarator Block
+.SUBCKT EnGen vdd vss RefChg Reset En nEn
+XNOR vdd 0 RefChg Reset FB ONR NOR3in
+C1 ONR ONR1 6pF
+R1 vdd ONR1 100k
+XNOTx1 vdd 0 ONR1 ONR2 NOTx1
+XNOTx2 vdd 0 ONR2 ONR3 NOTx1
+XNOTx3 vdd 0 ONR3 FB NOTx1
+XNOTx4 vdd 0 FB En NOTx1
+XNOTx5 vdd 0 En nEn NOTx1
+.IC V(FB)=0v
+.ENDS
+
+* Sub-circuit for the Error Indicator (EI)
+.SUBCKT EI vdd vss En nEn in1 in2 Err1 Err2
+.PARAM Fc=3
+XNOT1U vdd vss in1 in11 NOTx1
+XC2NOT2U vdd vss nEn En in11 in12 C2NOTx1
+XNOT3U vdd vss in12 Err1 NOTx1
+*
+MPF1U int1U in22 vdd vdd CMOSP W='Fc*Wp' L=Lp
+MPF2U in11 in12 int1U vdd CMOSP W='Fc*Wp' L=Lp
+MNF1U in11 in12 int2U vss CMOSN W='Fc*Wn' L=Ln
+MNF2U int2U in22 vss vss CMOSN W='Fc*Wn' L=Ln
+*
+XNOT1D vdd vss in2 in21 NOTx1
+XC2NOT2D vdd vss nEn En in21 in22 C2NOTx1
+XNOT3D vdd vss in22 Err2 NOTx1
+*
+MPF1D int1D in12 vdd vdd CMOSP W='Fc*Wp' L=Lp
+MPF2D in21 in22 int1D vdd CMOSP W='Fc*Wp' L=Lp
+MNF1D in21 in22 int2D vss CMOSN W='Fc*Wn' L=Ln
+MNF2D int2D in12 vss vss CMOSN W='Fc*Wn' L=Ln
+*
+MPResU in12 En vdd vdd CMOSP W='3*Wp' L=Lp
+MNResD in22 nEn vss vss CMOSN W='3*Wn' L=Ln
+.IC V(in12)=0v
+.IC V(in22)=0.9v
+.ENDS
+
+
+*********************************************************************
+* FIVR Subcircuit
+*********************************************************************
+* This subcircuit describes a typical FIVR used in this work to verify the
+* correct operation of our monitor scheme.
+* The FIVR receives as input a reference voltage Vref and produces
+* an output voltage Vout that changes dynamically based on the Vref value.
+*********************************************************************
+
+.SUBCKT FIVR Vref Vout
+V1 Vcc 0 1.8
+L1 N008 Vout 2n
+C1 Vout 0 300n
+M1 N008 Vcas N001 Vcc CMOSP l=22n w=2e-3
+M2 N012 Vcn 0 0 CMOSN l=22n w=0.5e-3
+M3 N008 Vcas N012 0 CMOSN l=22n w=0.5e-3
+M4 N001 Vcp Vcc Vcc CMOSP l=22n w=2e-3
+V2 Vcas 0 0.9
+V3 Vss 0 -1.8
+Rf1 Vout N009 13.45k
+Rf2 N009 0 35.88k
+Rc1 N010 N009 204.2k
+Cc1 Ve N010 136f
+Cc2 Ve N009 11.13f
+Cf1 N011 N009 1p
+Rf3 Vout N011 431.7
+XU1 N014 N009 Vcas Vss Ve level.2 Avol=100Meg GBW=10e9 Slew=10e9 ilimit=25m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=1e9
+XU2 Vtri Ve Vcc 0 N003 level.2 Avol=100e6 GBW=10e9 Slew=10e9 ilimit=50m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=1e9
+M5 N004 N003 Vcas Vcas CMOSN l=22n w=22n
+M6 N004 N003 Vcc Vcc CMOSP l=22n w=88n
+M7 N002 N004 Vcas Vcas CMOSN l=22n w=88n
+M8 N002 N004 Vcc Vcc CMOSP l=22n w=352n
+M9 N005 N002 Vcas Vcas CMOSN l=22n w=352n
+M10 N005 N002 Vcc Vcc CMOSP l=22n w=1408n
+M11 N006 N005 Vcas Vcas CMOSN l=22n w=1.408u
+M12 N006 N005 Vcc Vcc CMOSP l=22n w=23u
+M13 N007 N006 Vcas Vcas CMOSN l=22n w=5.6u
+M14 N007 N006 Vcc Vcc CMOSP l=22n w=5632n
+M15 Vcp N007 Vcas Vcas CMOSN l=22n w=22.5u
+M16 Vcp N007 Vcc Vcc CMOSP l=22n w=100u
+M17 N015 N003 0 0 CMOSN l=22n w=22n
+M18 N015 N003 Vcas Vcas CMOSP l=22n w=88n
+M19 N013 N015 0 0 CMOSN l=22n w=88n
+M20 N013 N015 Vcas Vcas CMOSP l=22n w=352n
+M21 N016 N013 0 0 CMOSN l=22n w=352n
+M22 N016 N013 Vcas Vcas CMOSP l=22n w=1408n
+M23 N017 N016 0 0 CMOSN l=22n w=1.408u
+M24 N017 N016 Vcas Vcas CMOSP l=22n w=23u
+M25 N018 N017 0 0 CMOSN l=22n w=5.6u
+M26 N018 N017 Vcas Vcas CMOSP l=22n w=5632n
+M27 Vcn N018 0 0 CMOSN l=22n w=22.5u
+M28 Vcn N018 Vcas Vcas CMOSP l=22n w=92u
+C2 Vtri N020 2.7p
+Vin1 N019 0 1.4
+R1 N020 N019 1k
+R2 0 N021 1k
+R5 N019 N021 1k
+R6 Vth 0 1k
+R7 Vquad Vth 800
+V7 Vss2 0 -0.9
+S1 Vss2 Vth En 0 switch
+V8 En 0 0
+M29 N020 Vquad 0 0 CMOSN l=22n w=22n m=35
+XU3 Vth Vtri Vcas 0 Vquad level.2 Avol=100e6 GBW=100e9 Slew=100e9 ilimit=50m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=1e9
+XU4 N021 N020 Vcas Vss2 Vtri level.2 Avol=100Meg GBW=100e9 Slew=100e9 ilimit=25m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=1e9
+R3 N014 Vref 375
+R4 0 N014 1k
+Iload Vout 0 100m
+.model NMOS NMOS
+.model PMOS PMOS
+.model switch SW(Ron=0.01 Roff=1e9 Vt=0.5v)
+.param IL=500m
+.ENDs
+
+*********************************************************************
+*The following line recalls the FIRV sub-circuit
+*and places it in the main circuit
+*********************************************************************
+XFIVR Vref Vout FIVR
+
+
+*********************************************************************
+* The following lines describes the proposed FIVR monitor scheme.
+*
+* The monitor enables to detect:
+* - the generation of a FIVR Vout falling outside a tolerance margin of 5%
+*   with respect to the Vref;
+* - a degred FIVR response time to change Vout after a change in Vref (degraded due to BTI)
+*   that is 10% higher than the FIVR response time at time 0 (i.e., with no aging).
+*
+* The monitor receives as inputs: *
+* - the reference Vref;
+* - the FIVR output voltage Vout;
+* - a synchronization signal RefChg, that presents a pulse each time Vref is changed;
+* - a reset signal (Rs) to reset error indications.
+*
+* The monitor produces two outputs Err1 and Err2.
+*
+* If the FIVR Vout is inside the tolerance margin and if the FIVR response time is lower
+* than the tolerable response time, the outputs (Err1, Err2) = (1,0) or (0,1).
+*
+* Instead, if Vout is outside the tolerance margin, or if the response time is higher
+* than 10% (due to BTI), our monitor makes (Err1, Err2) = (0, 0) or (1, 1) until Rs=1.
+*********************************************************************
+XDelayChain1 Vout 0 ck O1 NOTCHAIN1
+XDelayChain2 Vref 0 ck O2 NOTCHAIN2
+
+XNANDout1 Vout 0 En O1 In1 NAND2in
+XNANDout2 Vout 0 nEn O2 In2 NOR2in
+
+XEnGen Vinhalf 0 RefChg Rs En nEn EnGen
+
+XErrorInd Vinhalf 0 En nEn In1 In2 Err1 Err2 EI
+
+
+*********************************************************************
+* Voltage Sources
+*********************************************************************
+Vhalf Vinhalf 0 0.9v
+Vck   CK      0 PULSE(0 0.9v 0s 10p 10p 50n '2*50n')
+
+V_ref   Vref   0 PWL(0s 0.9v
++1u 0.9v 1.007u 1.1v
++2u 1.1v 2.007u 0.8v
++3u 0.8v 3.007u 1.1v)
+
+VRefChg RefChg 0 PWL(0s 0v
++1u 0v   1.007u 0.9v   1.01u 0.9v   1.017u 0v
++2u 0v   2.007u 0.9v   2.01u 0.9v   2.017u 0v
++3u 0v   3.007u 0.9v   3.01u 0.9v   3.017u 0v)
+
+VReset  Rs	0 0 PULSE(0v 0.9v 0s 10p 10p 350n 100u)
+
+
+*********************************************************************
+* Technology Libraries and Command for Analysis
+*********************************************************************
+.include '22nm.lib'
+.lib standard.mos
+.lib UniversalOpamps2.sub
+
+.tran 0 4u
+
+.end
+
+
+
+
+

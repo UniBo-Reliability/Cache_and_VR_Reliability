@@ -1,0 +1,646 @@
+**********************************************************************************
+* The netlist describes our monitoring scheme to detect the occurrence
+* of faults and aging conditions affecting hardware blocks implementing an
+* Othogonal Latin Squares (OLS) Double Error Correction (DEC) ECC.
+* The netlist also implements the Encoder and Decoder blocks of a case study
+* OLS DEC ECC with 16 information bits and 16 check bits.
+**********************************************************************************
+
+
+****************************************************************************
+* Definition of parameters with CMOS transistor sizes
+****************************************************************************
+.PARAM wp='2*16n'
+.PARAM lp=16n
+.PARAM lpc='2*lp'
+.PARAM wn=16n
+.PARAM ln=16n
+.PARAM lnc='2*ln'
+
+****************************************************************************
+* Definition of parameters for waveforms
+****************************************************************************
+.PARAM fclk=3.5G
+.PARAM clk='1/fclk'
+.PARAM trise=10ps
+.PARAM tfall=10ps
+.PARAM tset=15p
+.PARAM tgb=30p
+.PARAM tm='tset+tgb'
+.Param tdelaynot = 12ps
+
+****************************************************************************
+* Definition of subcircuits of some needed elementary logic gates
+****************************************************************************
+
+.SUBCKT INV vdd vss in out
+MP1 out in vdd vdd CMOSP W='wp*2' L=lp
+MN1 out in vss vss CMOSN W='wn*2' L=ln
+.ENDS
+
+.SUBCKT INVx10 vdd vss in out
+MP1 out in vdd vdd CMOSP W='wp*10' L=lp
+MN1 out in vss vss CMOSN W='wn*10' L=ln
+.ENDS
+
+.SUBCKT XOR vdd vss in1 in2 out
+XINV1 vdd vss in1 in1N INV
+XINV2 vdd vss in2 in2N INV
+MP1 nodeP in1N vdd vdd CMOSP W='wp*2' L=lp
+MP2 nodeQ in1 vdd vdd CMOSP W='wp*2' L=lp
+MP3 out in2 nodeP vdd CMOSP W='wp*2' L=lp
+MP4 out in2N nodeQ vdd CMOSP W='wp*2' L=lp
+MN1 out in1 nodeR vss CMOSN W='wn*2' L=ln
+MN2 out in1N nodeS vss CMOSN W='wn*2' L=ln
+MN3 nodeR in2 vss vss CMOSN W='wn*2' L=ln
+MN4 nodeS in2N vss vss CMOSN W='wn*2' L=ln
+.ENDS
+
+.SUBCKT NAND vdd vss in1 in2 out
+MP1 out in1 vdd vdd CMOSP W='wp*1' L=lp
+MP2 out in2 vdd vdd CMOSP W='wp*1' L=lp
+MN1 out in1 nodeN vss CMOSN W='wn*2' L=ln
+MN2 nodeN in2 vss vss CMOSN W='wn*2' L=ln
+.ENDS
+
+.SUBCKT AND vdd vss in1 in2 out
+XNAND vdd vss in1 in2 outNand NAND
+XINV vdd vss outNand out INV
+.ENDS
+
+.SUBCKT NAND3 vdd vss in1 in2 in3 out
+MP1 out in1 vdd vdd CMOSP W='wp*1' L=lp
+MP2 out in2 vdd vdd CMOSP W='wp*1' L=lp
+MP3 out in3 vdd vdd CMOSP W='wp*1' L=lp
+MN1 out in1 nodeN1 vss CMOSN W='wn*3' L=ln
+MN2 nodeN1 in2 nodeN2 vss CMOSN W='wn*3' L=ln
+MN3 nodeN2 in3 vss vss CMOSN W='wn*3' L=ln
+.ENDS
+
+.SUBCKT AND3 vdd vss in1 in2 in3 out
+XNAND3 vdd vss in1 in2 in3 outNand3 NAND3
+XINV vdd vss outNand3 out INV
+.ENDS
+
+.SUBCKT NOR2 vdd vss in1 in2 out
+MP1 nodeP in1 vdd vdd CMOSP W='wp*2' L=lp
+MP2 out in2 nodeP vdd CMOSP W='wp*2' L=lp
+MN1 out in1 vss vss CMOSN W='wn*1' L=ln
+MN2 out in2 vss vss CMOSN W='wn*1' L=ln
+.ENDS
+
+.SUBCKT NOR4 vdd vss in1 in2 in3 in4 out
+MP1 nodeP in1 vdd vdd CMOSP W='wp*4' L=lp
+MP2 nodeQ in2 nodeP vdd CMOSP W='wp*4' L=lp
+MP3 nodeR in3 nodeQ vdd CMOSP W='wp*4' L=lp
+MP4 out in4 nodeR vdd CMOSP W='wp*4 ' L=lp
+MN1 out in1 vss vss CMOSN W='wn*1' L=ln
+MN2 out in2 vss vss CMOSN W='wn*1' L=ln
+MN3 out in3 vss vss CMOSN W='wn*1' L=ln
+MN4 out in4 vss vss CMOSN W='wn*1' L=ln
+.ENDS
+
+.SUBCKT OR4 vdd vss in1 in2 in3 in4 out
+XNOR4 vdd vss in1 in2 in3 in4 outNor4 NOR4
+XINV vdd vss outNor4 out INV
+.ENDS
+
+.SUBCKT NOTxCHAIN vdd vss in out
+MP1 out in vdd vdd CMOSP W=Wp L=lpc
+MN1 out in vss vss CMOSN W=Wn L=lnc
+.ENDs
+
+.SUBCKT NOTx1 vdd vss in out
+MP1 out in vdd vdd CMOSP W=Wp L=lp
+MN1 out in vss vss CMOSN W=Wn L=ln
+.ENDs
+
+.SUBCKT C2NOTx1 vdd vss Gp Gn in out
+MP1 int1 Gp vdd vdd CMOSP W='1*Wp' L=lp
+MP2 out in int1 Vdd CMOSP W='1*Wp' L=lp
+MN1 out in int2 vss CMOSN W='1*Wn' L=ln
+MN2 int2 Gn vss vss CMOSN W='1*Wn' L=ln
+.ENDs
+
+
+****************************************************************************
+* Definition of subcircuits for the Encoder/Decoder
+****************************************************************************
+.SUBCKT XORCB vdd vss in1 in2 in3 in4 out
+XXOR1 vdd vss in1 in2 out1 XOR
+XXOR2 vdd vss in3 in4 out2 XOR
+XXOR3 vdd vss out1 out2 out XOR
+.ENDS
+
+.SUBCKT MAJVOT vdd vss in1 in2 in3 in4 out
+XAND3_1 vdd vss in1 in2 in3 out1 AND3
+XAND3_2 vdd vss in2 in1 in4 out2 AND3
+XAND3_3 vdd vss in3 in4 in1 out3 AND3
+XAND3_4 vdd vss in4 in3 in2 out4 AND3
+XOR4 vdd vss out1 out2 out3 out4 out OR4
+.ENDS
+
+.SUBCKT ErrDet vdd vss S0 S1 S2 S3 S4 S5 S6 S7 S8 S9 S10 S11 S12 S13 S14 S15 out
+X_OR41 vdd vss S0 S1 S2 S3 int1 OR4
+X_OR42 vdd vss S4 S5 S6 S7 int2 OR4
+X_OR43 vdd vss S8 S9 S10 S11 int3 OR4
+X_OR44 vdd vss S12 S13 S14 S15 int4 OR4
+X_OR45 vdd vss int1 int2 int3 int4 out OR4
+.ENDS
+
+
+****************************************************************************
+* Definition of subcircuit used to implement our proposed
+* Fault anf Aging Detectors
+****************************************************************************
+
+****************************************************************************
+* Buffer
+****************************************************************************
+.SUBCKT BUFF vdd vss in out
+XINV1 vdd vss in outN INV
+XINV2 vdd vss outN out INV
+.ENDS
+
+****************************************************************************
+* Transmission gate
+****************************************************************************
+.SUBCKT TG vdd vss in clk clkn out
+MP1 out clkn in vdd CMOSP W='wp' L=lp
+MN1 out clk in vss CMOSN W='wn' L=ln
+.ENDS
+
+****************************************************************************
+* Transition detector
+****************************************************************************
+.SUBCKT TD vdd vss in TWC TWCn out1 out2
+XINV1 vdd vss in C NOTxCHAIN
+*XINV2 vdd vss i1 i2 NOTxCHAIN
+*XINV3 vdd vss i2 C NOTxCHAIN
+XBUFF1 vdd vss C Cb BUFF
+XTG1 vdd vss Cb TWC TWCn out1 TG
+XTG2 vdd vss in TWC TWCn out2 TG
+.ENDS
+
+****************************************************************************
+* 2-variable Two-Rail Checker (TRC)
+****************************************************************************
+.SUBCKT TRC2 vdd vss x1 y1 x2 y2 z1 z2
+XAND2_1 vdd vss x1 y2 outAnd1 AND
+XAND2_2 vdd vss x2 y1 outAnd2 AND
+XAND2_3 vdd vss x1 x2 outAnd3 AND
+XAND2_4 vdd vss y1 y2 outAnd4 AND
+XNOR2_1 vdd vss outAnd1 outAnd2 z1 NOR2
+XNOR2_2 vdd vss outAnd3 outAnd4 z2 NOR2
+.ENDS
+
+****************************************************************************
+* 4-variable TRC
+****************************************************************************
+.SUBCKT TRC4 vdd vss x1 y1 x2 y2 x3 y3 x4 y4 z1 z2
+XTRC2_1 vdd vss x1 y1 x2 y2 out1Trc1 out2Trc1 TRC2
+XTRC2_2 vdd vss x3 y3 x4 y4 out1Trc2 out2Trc2 TRC2
+XTRC2_3 vdd vss out1Trc1 out2Trc1 out1Trc2 out2Trc2 z1 z2 TRC2
+.ENDS
+
+****************************************************************************
+* 6-variable TRC
+****************************************************************************
+.SUBCKT TRC6 vdd vss x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6 z1 z2
+XTRC2_1 vdd vss x1 y1 x2 y2 out1Trc1 out2Trc1 TRC2
+XTRC2_2 vdd vss x3 y3 x4 y4 out1Trc2 out2Trc2 TRC2
+XTRC2_3 vdd vss x5 y5 x6 y6 out1Trc3 out2Trc3 TRC2
+XTRC2_4 vdd vss out1Trc1 out2Trc1 out1Trc2 out2Trc2 out1Trc4 out2Trc4 TRC2
+XTRC2_5 vdd vss out1Trc3 out2Trc3 out1Trc4 out2Trc4 z1 z2 TRC2
+.ENDS
+
+****************************************************************************
+* 8-variable TRC
+****************************************************************************
+.SUBCKT TRC8 vdd vss x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6 x7 y7 x8 y8 z1 z2
+XTRC4_1 vdd vss x1 y1 x2 y2 x3 y3 x4 y4 out1Trc1 out2Trc1 TRC4
+XTRC4_2 vdd vss x5 y5 x6 y6 x7 y7 x8 y8 out1Trc2 out2Trc2 TRC4
+XTRC2_1 vdd vss out1Trc1 out2Trc1 out1Trc2 out2Trc2 z1 z2 TRC2
+.ENDS
+
+
+
+****************************************************************************
+* Generation of information bits (de0, ..., de15), that should be stored on the cache,
+* and that are given as inputs to the Encoder block.
+* These bits have been obtained by inverting signals (de0i, ..., de15i) gerenated by ideal
+* voltage sources, so that these signal present realistic waveforms.
+****************************************************************************
+*Information bits (de0, ..., de15)
+XVde0 vdd vss de0i de0 INVx10
+XVde1 vdd vss de1i de1 INVx10
+XVde2 vdd vss de2i de2 INVx10
+XVde3 vdd vss de3i de3 INVx10
+XVde4 vdd vss de4i de4 INVx10
+XVde5 vdd vss de5i de5 INVx10
+XVde6 vdd vss de6i de6 INVx10
+XVde7 vdd vss de7i de7 INVx10
+XVde8 vdd vss de8i de8 INVx10
+XVde9 vdd vss de9i de9 INVx10
+XVde10 vdd vss de10i de10 INVx10
+XVde11 vdd vss de11i de11 INVx10
+XVde12 vdd vss de12i de12 INVx10
+XVde13 vdd vss de13i de13 INVx10
+XVde14 vdd vss de14i de14 INVx10
+XVde15 vdd vss de15i de15 INVx10
+
+****************************************************************************
+* Implementation of the Encoder block, that generates the check bits (c0, ..., c15)
+* from the received information bits (de0, ..., de15).
+****************************************************************************
+XENCODER0 vdd vss de0 de1 de2 de3 c0 XORCB
+XENCODER1 vdd vss de4 de5 de6 de7 c1 XORCB
+XENCODER2 vdd vss de8 de9 de10 de11 c2 XORCB
+XENCODER3 vdd vss de12 de13 de14 de15 c3 XORCB
+XENCODER4 vdd vss de0 de4 de8 de12 c4 XORCB
+XENCODER5 vdd vss de1 de5 de9 de13 c5 XORCB
+XENCODER6 vdd vss de2 de6 de10 de14 c6 XORCB
+XENCODER7 vdd vss de3 de7 de11 de15 c7 XORCB
+XENCODER8 vdd vss de0 de5 de10 de15 c8 XORCB
+XENCODER9 vdd vss de1 de4 de11 de14 c9 XORCB
+XENCODER10 vdd vss de2 de7 de8 de13 c10 XORCB
+XENCODER11 vdd vss de3 de6 de9 de12 c11 XORCB
+XENCODER12 vdd vss de0 de6 de11 de13 c12 XORCB
+XENCODER13 vdd vss de1 de7 de10 de12 c13 XORCB
+XENCODER14 vdd vss de2 de4 de9 de15 c14 XORCB
+XENCODER15 vdd vss de3 de5 de8 de14 c15 XORCB
+
+
+****************************************************************************
+* Generation of information bits read from the cache (d0, ..., d15), that together with
+* check bits (c0, ..., c15) are given as inputs to the Decoder block.
+* These bits have been obtained by inverting signals (d0i, ..., d15i) gerenated by ideal
+* voltage sources, so that these signal present realistic waveforms.
+****************************************************************************
+*Information bits read from cache (d0, ..., d15)
+XVd0 vdd vss d0i d0 INVx10
+XVd1 vdd vss d1i d1 INVx10
+XVd2 vdd vss d2i d2 INVx10
+XVd3 vdd vss d3i d3 INVx10
+XVd4 vdd vss d4i d4 INVx10
+XVd5 vdd vss d5i d5 INVx10
+XVd6 vdd vss d6i d6 INVx10
+XVd7 vdd vss d7i d7 INVx10
+XVd8 vdd vss d8i d8 INVx10
+XVd9 vdd vss d9i d9 INVx10
+XVd10 vdd vss d10i d10 INVx10
+XVd11 vdd vss d11i d11 INVx10
+XVd12 vdd vss d12i d12 INVx10
+XVd13 vdd vss d13i d13 INVx10
+XVd14 vdd vss d14i d14 INVx10
+XVd15 vdd vss d15i d15 INVx10
+
+
+
+****************************************************************************
+* Implementation of the Decoder block.
+* It receives words read from the cache(d0, ..., d15, c0, ..., c15), and generates as outputs:
+* - the corrected informationthe bits (dcorr0, ..., dcorr15)
+* - the error signal ErrorDet = 1 in case a single or double error is corrected.
+*****************************************************************************
+* Implementation of the Syndrome Generator sub-block of the decoder
+* Regenerated check bits are (cx0, ..., cx15)
+XENCODERx0 vdd vss d0 d1 d2 d3 cx0 XORCB
+XENCODERx1 vdd vss d4 d5 d6 d7 cx1 XORCB
+XENCODERx2 vdd vss d8 d9 d10 d11 cx2 XORCB
+XENCODERx3 vdd vss d12 d13 d14 de15 cx3 XORCB
+XENCODERx4 vdd vss d0 d4 d8 d12 cx4 XORCB
+XENCODERx5 vdd vss d1 d5 d9 d13 cx5 XORCB
+XENCODERx6 vdd vss d2 d6 d10 d14 cx6 XORCB
+XENCODERx7 vdd vss d3 d7 d11 d15 cx7 XORCB
+XENCODERx8 vdd vss d0 d5 d10 d15 cx8 XORCB
+XENCODERx9 vdd vss d1 d4 d11 d14 cx9 XORCB
+XENCODERx10 vdd vss d2 d7 d8 d13 cx10 XORCB
+XENCODERx11 vdd vss d3 d6 d9 d12 cx11 XORCB
+XENCODERx12 vdd vss d0 d6 d11 d13 cx12 XORCB
+XENCODERx13 vdd vss d1 d7 d10 d12 cx13 XORCB
+XENCODERx14 vdd vss d2 d4 d9 d15 cx14 XORCB
+XENCODERx15 vdd vss d3 d5 d8 d14 cx15 XORCB
+
+*If (cx0, ..., cx15)=(c0, ..., c15) then (s0, ..., s15)=(0, ..., 0) so no error.
+XCOMPARATOR0 vdd vss cx0 c0 s0 XOR
+XCOMPARATOR1 vdd vss cx1 c1 s1 XOR
+XCOMPARATOR2 vdd vss cx2 c2 s2 XOR
+XCOMPARATOR3 vdd vss cx3 c3 s3 XOR
+XCOMPARATOR4 vdd vss cx4 c4 s4 XOR
+XCOMPARATOR5 vdd vss cx5 c5 s5 XOR
+XCOMPARATOR6 vdd vss cx6 c6 s6 XOR
+XCOMPARATOR7 vdd vss cx7 c7 s7 XOR
+XCOMPARATOR8 vdd vss cx8 c8 s8 XOR
+XCOMPARATOR9 vdd vss cx9 c9 s9 XOR
+XCOMPARATOR10 vdd vss cx10 c10 s10 XOR
+XCOMPARATOR11 vdd vss cx11 c11 s11 XOR
+XCOMPARATOR12 vdd vss cx12 c12 s12 XOR
+XCOMPARATOR13 vdd vss cx13 c13 s13 XOR
+XCOMPARATOR14 vdd vss cx14 c14 s14 XOR
+XCOMPARATOR15 vdd vss cx15 c15 s15 XOR
+
+* Implementation of the Syndrome Decoder sub-block of the decoder
+*error vector (dx1, ..., dx15)
+XMAJVOT0 vdd vss s0 s4 s8 s12 dx0 MAJVOT
+XMAJVOT1 vdd vss s0 s5 s9 s13 dx1 MAJVOT
+XMAJVOT2 vdd vss s0 s6 s10 s14 dx2 MAJVOT
+XMAJVOT3 vdd vss s2 s7 s11 s15 dx3 MAJVOT
+XMAJVOT4 vdd vss s1 s4 s9 s14 dx4 MAJVOT
+XMAJVOT5 vdd vss s1 s5 s8 s15 dx5 MAJVOT
+XMAJVOT6 vdd vss s1 s6 s11 s12 dx6 MAJVOT
+XMAJVOT7 vdd vss s1 s7 s10 s13 dx7 MAJVOT
+XMAJVOT8 vdd vss s2 s4 s10 s15 dx8 MAJVOT
+XMAJVOT9 vdd vss s2 s5 s11 s14 dx9 MAJVOT
+XMAJVOT10 vdd vss s2 s6 s8 s13 dx10 MAJVOT
+XMAJVOT11 vdd vss s2 s7 s9 s12 dx11 MAJVOT
+XMAJVOT12 vdd vss s3 s4 s11 s13 dx12 MAJVOT
+XMAJVOT13 vdd vss s3 s5 s10 s12 dx13 MAJVOT
+XMAJVOT14 vdd vss s3 s6 s9 s15 dx14 MAJVOT
+XMAJVOT15 vdd vss s3 s7 s8 s14 dx15 MAJVOT
+
+* Implementation of the Corrector sub-block of the decoder
+* corrected outputs (dcorr1, ..., dcorr15)
+XCORRECTION0 vdd vss d0 dx0 dcorr0 XOR
+XCORRECTION1 vdd vss d1 dx1 dcorr1 XOR
+XCORRECTION2 vdd vss d2 dx2 dcorr2 XOR
+XCORRECTION3 vdd vss d3 dx3 dcorr3 XOR
+XCORRECTION4 vdd vss d4 dx4 dcorr4 XOR
+XCORRECTION5 vdd vss d5 dx5 dcorr5 XOR
+XCORRECTION6 vdd vss d6 dx6 dcorr6 XOR
+XCORRECTION7 vdd vss d7 dx7 dcorr7 XOR
+XCORRECTION8 vdd vss d8 dx8 dcorr8 XOR
+XCORRECTION9 vdd vss d9 dx9 dcorr9 XOR
+XCORRECTION10 vdd vss d10 dx10 dcorr10 XOR
+XCORRECTION11 vdd vss d11 dx11 dcorr11 XOR
+XCORRECTION12 vdd vss d12 dx12 dcorr12 XOR
+XCORRECTION13 vdd vss d13 dx13 dcorr13 XOR
+XCORRECTION14 vdd vss d14 dx14 dcorr14 XOR
+XCORRECTION15 vdd vss d15 dx15 dcorr15 XOR
+
+* Implementation of the error generation sub-block of the decoder
+XErr_Det vdd 0 S0 S1 S2 S3 S4 S5 S6 S7 S8 S9 S10 S11 S12 S13 S14 S15 ErrorDet ErrDet
+
+
+* Examples of possible BFs affecting the Decoer (all commented) that can be
+* used to verify the ability of our monitoring scheme to detect faults
+* affecting the Decoder blcock.
+*Rbf0 dcorr0 d0n 100
+*Rbf1 dcorr1 d1n 100
+*Rbf2 dcorr2 d2n 100
+*Rbf3 dcorr3 d3n 100
+*Rbf4 dcorr4 d4n 100
+*Rbf5 dcorr5 d5n 100
+*Rbf6 dcorr6 d6n 100
+*Rbf7 dcorr7 d7n 100
+*Rbf8 dcorr8 d8n 100
+*Rbf9 dcorr9 d9n 100
+*Rbf10 dcorr10 d10n 100
+*Rbf11 dcorr11 d11n 100
+*Rbf12 dcorr12 d12n 100
+*Rbf13 dcorr13 d13n 100
+*Rbf14 dcorr14 d14n 100
+*Rbf15 dcorr15 d15n 100
+
+
+****************************************************************************
+* Implementation of the Fault Detector (FDetector) block.
+*
+* FDetector receives the words read from the cache (d0, ..., d15, c0, ..., c15) and
+* the corrected informationthe bits at the outputs of the Decoder (dcorr0, ..., dcorr15).
+*
+* FDetector generates as output the signals (EC1, EC2).
+*
+* FDetector makes (EC1, EC2) = (0, 1) or (1, 0) if the information bits read from the cache
+* are equal to the Decoder outputs and if the check bits read from the cache are correct.
+* Otherwise, FDetector makes (EC1, EC2) = (0, 0) or (1, 1).
+*
+* In order to detect faults affecting the Decoder, Signals (EC1, EC2) should be
+* analyzed together with the error signal ErrorDet generated by the Decoder:
+*
+* For a fault-free Decoder, it is
+* (EC1, EC2, ErrorDet) = (0, 0, 1) or (1, 1, 1), or
+* (EC1, EC2, ErrorDet) = (0, 1, 0) or (1, 0, 0).
+*
+* In case of faults affecting the Decoder, it results:
+* (EC1, EC2, ErrorDet) = (0, 1, 1) or (1, 0, 1), or
+* (EC1, EC2, ErrorDet) = (0, 0, 0) or (1, 1, 0).
+****************************************************************************
+
+* Generation of the complement of the word read from the cache (d0n, ..., d15n, cx0n,..., cx15n).
+* They are needed since the FDetector uses a TRC to compare:
+* - the information bits read from the cache with the outputs of the Decoder
+* - the check bits read from the cache with internally regenerated check bits (from the
+*   information bits read from the cache.
+XVd0n vdd vss d0 d0n INVx10
+XVd1n vdd vss d1 d1n INVx10
+XVd2n vdd vss d2 d2n INVx10
+XVd3n vdd vss d3 d3n INVx10
+XVd4n vdd vss d4 d4n INVx10
+XVd5n vdd vss d5 d5n INVx10
+XVd6n vdd vss d6 d6n INVx10
+XVd7n vdd vss d7 d7n INVx10
+XVd8n vdd vss d8 d8n INVx10
+XVd9n vdd vss d9 d9n INVx10
+XVd10n vdd vss d10 d10n INVx10
+XV11dn vdd vss d11 d11n INVx10
+XVd12n vdd vss d12 d12n INVx10
+XVd13n vdd vss d13 d13n INVx10
+XVd14n vdd vss d14 d14n INVx10
+XVd15n vdd vss d15 d15n INVx10
+
+XVcx0n vdd vss cx0 cx0n INVx10
+XVcx1n vdd vss cx1 cx1n INVx10
+XVcx2n vdd vss cx2 cx2n INVx10
+XVcx3n vdd vss cx3 cx3n INVx10
+XVcx4n vdd vss cx4 cx4n INVx10
+XVcx5n vdd vss cx5 cx5n INVx10
+XVcx6n vdd vss cx6 cx6n INVx10
+XVcx7n vdd vss cx7 cx7n INVx10
+XVcx8n vdd vss cx8 cx8n INVx10
+XVcx9n vdd vss cx9 cx9n INVx10
+XVcx10n vdd vss cx10 c10n INVx10
+XVcx11n vdd vss cx11 cx11n INVx10
+XVcx12n vdd vss cx12 cx12n INVx10
+XVcx13n vdd vss cx13 cx13n INVx10
+XVcx14n vdd vss cx14 cx14n INVx10
+XVcx15n vdd vss cx15 cx15n INVx10
+
+* Implementation of an Encoder to regenerate the check bits (cx0R, ..., cx15R)
+* from the information bits read from the cache.
+XENCODERx0R vdd vss d0 d1 d2 d3 c0R XORCB
+XENCODERx1R vdd vss d4 d5 d6 d7 c1R XORCB
+XENCODERx2R vdd vss d8 d9 d10 d11 c2R XORCB
+XENCODERx3R vdd vss d12 d13 d14 d15 c3R XORCB
+XENCODERx4R vdd vss d0 d4 d8 d12 c4R XORCB
+XENCODERx5R vdd vss d1 d5 d9 d13 c5R XORCB
+XENCODERx6R vdd vss d2 d6 d10 d14 c6R XORCB
+XENCODERx7R vdd vss d3 d7 d11 d15 c7R XORCB
+XENCODERx8R vdd vss d0 d5 d10 d15 c8R XORCB
+XENCODERx9R vdd vss d1 d4 d11 d14 c9R XORCB
+XENCODERx10R vdd vss d2 d7 d8 d13 c10R XORCB
+XENCODERx11R vdd vss d3 d6 d9 d12 c11R XORCB
+XENCODERx12R vdd vss d0 d6 d11 d13 c12R XORCB
+XENCODERx13R vdd vss d1 d7 d10 d12 c13R XORCB
+XENCODERx14R vdd vss d2 d4 d9 d15 c14R XORCB
+XENCODERx15R vdd vss d3 d5 d8 d14 c15R XORCB
+
+* Implementation of a 32-variable TRC that:
+* - compares the complement of the information bits read from the cache
+*   (d0n, ..., d15n) with the Decoder outputs (dcorr0, ..., dcorr15), and the
+*   complement of the check bits read from the cache (cx0n, ..., cx15n) with the
+*   regenerated check bits (cx0R,..., cx15R).
+* - generates the outputs (EC1, EC2) of the FDetector.
+X1TRC8FDet vdd vss d0n dcorr0 d1n dcorr1 d2n dcorr2 d3n dcorr3 d4n dcorr4 d5n dcorr5 d6n dcorr6 d7n dcorr7 out1TrcFDet1 out2TrcFDet1 TRC8
+X2TRC8FDet vdd vss d8n dcorr8 d9n dcorr9 d10n dcorr10 d11n dcorr11 d12n dcorr12 d13n dcorr13 d14n dcorr14 d15n dcorr15 out1TrcFDet2 out2TrcFDet2 TRC8
+X3TRC8FDet vdd vss cx0n c0R cx1n c1R cx2n c2R cx3n c3R cx4n c4R cx5n c5R cx6n c6R cx7n c7R out1TrcFDet3 out2TrcFDet3 TRC8
+X4TRC8FDet vdd vss cx8n c8R cx9n c9R cx10n c10R cx11n c11R cx12n c12R cx13n c13R cx14n c14R cx15n c15R out1TrcFDet4 out2TrcFDet4 TRC8
+X5TRC4FDet vdd vss out1TrcFDet1 out2TrcFDet1 out1TrcFDet2 out2TrcFDet2 out1TrcFDet3 out2TrcFDet3 out1TrcFDet4 out2TrcFDet4 EC1 EC2 TRC4
+
+
+
+****************************************************************************
+* Implementation of the Aging Detector (ADetector) block.
+*
+* The ADetector monitors the outputs of the Decoder (dcorr0, ..., dcorr15)
+* during a proper timing guardband, in order to detect late transitions
+* of Decoder outputs due to BTI.
+*
+* ADetector receives the outputs of the Decoder (dcorr0, ..., dcorr15), and a
+* Time Window Control signal (TWC), which is asserted only during the timing guardband.
+* TWC enables to activte ADetector only during the timing gurband.
+*
+* ADetector generates two signals (AC1, AC2) encoded by the two rail code.
+*
+* When TWC=0, ADetector is disabled and makes (AC1, AC2) = (0,1) or (1,0).
+*
+* When TWC=1, ADetector is enabled to detect late transitions of Decoder outputs:
+* - If all the Decoder outputs are stable while TWC=1, our ADetector makes
+*   (AC1, AC2) = (0,1) or (1,0).
+* - If at least one Decoder output presents a transition when TWC=1, our ADetector generates
+*   an error message, thus it makes makes (AC1, AC2) = (0,0) or (1,1).
+****************************************************************************
+
+* Implementation of Transition Detector, by recalling subcircuit TD (one per Decoer output),
+* to detect late  transitions on (dcorr0, ..., dcorr15) when TWC=1.
+XTD_1 vdd vss dcorr0 TWC TWCn o1_1 o2_1 TD
+XTD_2 vdd vss dcorr1 TWC TWCn o1_2 o2_2 TD
+XTD_3 vdd vss dcorr2 TWC TWCn o1_3 o2_3 TD
+XTD_4 vdd vss dcorr3 TWC TWCn o1_4 o2_4 TD
+XTD_5 vdd vss dcorr4 TWC TWCn o1_5 o2_5 TD
+XTD_6 vdd vss dcorr5 TWC TWCn o1_6 o2_6 TD
+XTD_7 vdd vss dcorr6 TWC TWCn o1_7 o2_7 TD
+XTD_8 vdd vss dcorr7 TWC TWCn o1_8 o2_8 TD
+XTD_9 vdd vss dcorr8 TWC TWCn o1_9 o2_9 TD
+XTD_10 vdd vss dcorr9 TWC TWCn o1_10 o2_10 TD
+XTD_11 vdd vss dcorr10 TWC TWCn o1_11 o2_11 TD
+XTD_12 vdd vss dcorr11 TWC TWCn o1_12 o2_12 TD
+XTD_13 vdd vss dcorr12 TWC TWCn o1_13 o2_13 TD
+XTD_14 vdd vss dcorr13 TWC TWCn o1_14 o2_14 TD
+XTD_15 vdd vss dcorr14 TWC TWCn o1_15 o2_15 TD
+XTD_16 vdd vss dcorr15 TWC TWCn o1_16 o2_16 TD
+
+* Implementation of the 16-variable Two-Rail Code (TRC) checker that receives the outputs of
+* the 16 transition detectors and generates the outputs of our ADetector (AC1, AC2).
+
+XTRC8_1 vdd vss o1_1 o2_1 o1_2 o2_2 o1_3 o2_3 o1_4 o2_4 o1_5 o2_5 o1_6 o2_6 o1_7 o2_7 o1_8 o2_8 out1Trc1 out2Trc1 TRC8
+XTRC8_2 vdd vss o1_9 o2_9 o1_10 o2_10 o1_11 o2_11 o1_12 o2_12 o1_13 o2_13 o1_14 o2_14 o1_15 o2_15 o1_16 o2_16 out1Trc2 out2Trc2 TRC8
+XTRC2_1 vdd vss out1Trc1 out2Trc1 out1Trc2 out2Trc2 AC1 AC2 TRC2
+
+
+*********************************************************************
+* Voltage Sources
+*********************************************************************
+
+V_Vdd vdd 0 0.8V
+V_Vss vss 0 0V
+
+
+*Clock signals
+V_clk clk vss PULSE (0V 0.8V 0ps 'trise' 'tfall' 'clk/2' 'clk')
+V_clkn clkn vss PULSE (0.8V 0V 0ps 'trise' 'tfall' 'clk/2' 'clk')
+
+*Time Window Control signals
+V_TWC TWC vss PULSE (0V 0.8V 'clk-tm' 'trise' 'tfall' 'tm-{tdelaynot}' 'clk')
+V_TWCn TWCn vss PULSE (0.8V 0V 'clk-tm' 'trise' 'tfall' 'tm-{tdelaynot}' 'clk')
+
+*Reset signals
+*V_ResN Res vss PWL (0ps 0V '3*clk+clk/4' 0V '(3*clk+clk/4)+trise' 0.8V '(3*clk+clk/4)+trise+200ps' 0.8V '(3*clk+clk/4)+trise+200ps+tfall' 0V)
+*V_Res ResN vss PWL (0ps 0.8V '3*clk+clk/4' 0.8V '(3*clk+clk/4)+trise' 0V '(3*clk+clk/4)+trise+200ps' 0V '(3*clk+clk/4)+trise+200ps+tfall' 0.8V)
+
+
+
+****************************************************************************
+* Generation of signals for the generation of information bits,
+* that should be stored on the cache, and that are given as inputs to the Encoder block.
+* As an example, we considered (d0, ..., d15) = (0,1,1,0,1,0,1,1,0,1,0,0,0,1,0,1)
+* The related check bits are (c0, ..., c15) = (0,1,1,0,1,1,0,0,1,0,1,0,0,0,0,0)
+*****************************************************************************
+V_de0i de0i vss 0.8V
+V_de1i de1i vss 0V
+V_de2i de2i vss 0V
+V_de3i de3i vss 0.8V
+V_de4i de4i vss 0V
+V_de5i de5i vss 0.8V
+V_de6i de6i vss 0V
+V_de7i de7i vss 0V
+V_de8i de8i vss 0.8V
+V_de9i de9i vss 0V
+V_de10i de10i vss 0.8V
+V_de11i de11i vss 0.8V
+V_de12i de12i vss 0.8V
+V_de13i de13i vss 0V
+V_de14i de14i vss 0.8V
+V_de15i de15i vss 0V
+
+
+
+
+****************************************************************************
+* Generation of information bits read from the cache (d0, ..., d15), that together with
+* check bits (c0, ..., c15) are given as inputs to the Decoder block.
+* Example of fault-free case:
+* (d0, ..., d15) = (0,1,1,0,1,0,1,1,0,1,0,0,0,1,0,1)
+* (c0, ..., c15) = (0,1,1,0,1,1,0,0,1,0,1,0,0,0,0,0)
+****************************************************************************
+
+*For inputs d0i and d4i, we include two generators, to emulate the case in which
+*the bits are correct and one to emulate the case in which they are erroneous.
+
+*Uncoment the following generator to emulate the presence of an error on d0i after 0.5ns
+*V_d0i d0i vss PULSE (0V 0.8V 0ps 'trise' 'tfall' '(clk-tm-30ps)/2' 'clk-tm-30ps')
+
+*Coment the following generator to emulate the presence of an error on d0i
+V_d0i d0i vss 0.8V
+
+V_d1i d1i vss 0V
+V_d2i d2i vss 0V
+V_d3i d3i vss 0.8V
+
+*Uncoment the following generator to emulate the presence of an error on d4i after 0.5ns
+V_d4i d4i vss PULSE (0V 0.8V 0.4ns 'trise' 'tfall' '5*clk' '10*clk')
+
+*Coment the following generator to emulate the presence of an error on d4i
+*V_d4i d4i vss 0V
+
+V_d5i d5i vss 0.8V
+V_d6i d6i vss 0V
+V_d7i d7i vss 0V
+V_d8i d8i vss 0.8V
+V_d9i d9i vss 0V
+V_d10i d10i vss 0.8V
+V_d11i d11i vss 0.8V
+V_d12i d12i vss 0.8V
+V_d13i d13i vss 0V
+V_d14i d14i vss 0.8V
+V_d15i d15i vss 0V
+
+
+*********************************************************************
+* Technology Library and Command for Analysis
+*********************************************************************
+
+.INCLUDE '16nm_bulk.lib'
+
+.TRAN 10ps '4*clk'
+.end
